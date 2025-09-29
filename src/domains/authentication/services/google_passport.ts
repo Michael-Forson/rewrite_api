@@ -11,7 +11,7 @@ console.log("User model:", User);
 console.log("User.findOne:", typeof User.findOne);
 console.log("User.modelName:", User.modelName);
 
-const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_PUBLIC_SCHEME}`;
+const GOOGLE_REDIRECT_URI = `${process.env.EXPO_PUBLIC_BASE_URL}/api/v1/user/google/callback`;
 
 passport.use(
   new GoogleStrategy(
