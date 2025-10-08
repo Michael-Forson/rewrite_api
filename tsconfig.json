@@ -39,8 +39,9 @@
 
     // Recommended Options
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/types/**/*"],
   "exclude": ["node_modules"]
 }

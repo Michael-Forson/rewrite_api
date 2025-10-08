@@ -7,12 +7,9 @@ export interface IUserDocument extends Document {
   email: string;
   role: string;
   mobile?: string;
-  googleId?: string;
-  facebookId?: string;
   password?: string;
   isBlocked: boolean;
-  address: mongoose.Types.ObjectId[];
-  wishlist: mongoose.Types.ObjectId[];
+  isSubscribed: boolean;
   refreshToken?: string;
   accessToken?: string;
   isPasswordMatched(enteredPassword: string): Promise<boolean>;
@@ -40,36 +37,18 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       sparse: true,
     },
-
-    googleId: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
-
-    facebookId: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
-
     password: {
       type: String,
-      validate: {
-        validator: function (this: IUserDocument, candidatePassword: string) {
-          return this.googleId || this.facebookId
-            ? true
-            : candidatePassword.length > 0;
-        },
-        message: "Password is required if not using Google or Facebook OAuth.",
-      },
     },
 
     isBlocked: {
       type: Boolean,
       default: false,
     },
-
+    isSubscribed: {
+      type: Boolean,
+      default:false,
+    },
     refreshToken: {
       type: String,
     },

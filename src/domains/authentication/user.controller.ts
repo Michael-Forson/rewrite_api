@@ -1,25 +1,11 @@
 import { Request, Response } from "express";
-import { generateToken } from "./services/accesstoken";
+import { generateAccessToken, generateRefreshToken } from "./services/jwtToken";
 import UserModel, { IUserDocument } from "../../models/user.model";
 import asyncHandler from "express-async-handler";
 import { validateMongoDbId } from "../../utils/validateMonogoDbId";
-import { generateRefreshToken } from "./services/refresh_token";
 import jwt from "jsonwebtoken";
 
 const User = UserModel;
-
-// Type definitions
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    _id: string;
-    email: string;
-    username?: string;
-    mobile?: string;
-    accessToken?: string;
-    refreshToken?: string;
-  };
-}
 
 interface CreateUserRequest extends Request {
   body: {
@@ -31,6 +17,12 @@ interface CreateUserRequest extends Request {
     mobile?: string;
   };
 }
+interface GoogleCreateUserRequest extends Request {
+  body: {
+    email: string;
+    googleId: string;
+  };
+}
 
 interface LoginRequest extends Request {
   body: {
@@ -39,7 +31,7 @@ interface LoginRequest extends Request {
   };
 }
 
-interface UpdateUserRequest extends AuthenticatedRequest {
+interface UpdateUserRequest {
   body: {
     firstname?: string;
     lastname?: string;
@@ -75,7 +67,33 @@ const createUser = asyncHandler(
     }
   }
 );
+const continueWithGoogle = asyncHandler(
+  async (req: GoogleCreateUserRequest, res: Response): Promise<void> => {
+    const { email, googleId } = req.body;
+    if (!email) {
+      throw new Error("No email is sent!!! ");
+    }
+    // Find or create user
+    let user = await User.findOne({ email });
 
+    if (!user) {
+      user = await User.create({ email, googleId });
+    }
+
+    // Generate and update refresh token
+    const refreshToken = await generateRefreshToken(user._id);
+    await User.findByIdAndUpdate(user._id, { refreshToken }, { new: true });
+
+    // Send response
+    res.json({
+      id: user._id,
+      username: user?.username,
+      email: user.email,
+      accesstoken: generateAccessToken(user._id),
+      refreshToken,
+    });
+  }
+);
 // Login user
 const loginUserCtrl = asyncHandler(
   async (req: LoginRequest, res: Response): Promise<void> => {
@@ -105,7 +123,7 @@ const loginUserCtrl = asyncHandler(
         username: findUser.username,
         email: findUser.email,
         mobile: findUser.mobile,
-        token: generateToken(findUser._id),
+        token: generateAccessToken(findUser._id),
       });
     } else {
       throw new Error("Invalid Credentials");
@@ -135,71 +153,12 @@ const handleRefreshToken = asyncHandler(
         }
 
         // If refresh token is valid, generate a new access token
-        const accessToken: string = generateToken(user._id);
+        const accessToken: string = generateAccessToken(user._id);
         res.json({ accessToken });
       }
     );
   }
 );
-
-// GOOGLE AUTHENTICATION
-const googleLogin = (req: Request, res: Response): void => {
-  // This is the login route (handled by Passport)
-};
-
-// Callback after Google OAuth
-const googleCallback = (req: AuthenticatedRequest, res: Response): void => {
-  try {
-    // Generate a JWT for the authenticated user
-    if (!req.user) {
-      throw new Error("User not found in request");
-    }
-
-    const { accessToken, refreshToken } = req.user;
-
-    // Set the refresh token in an HttpOnly cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Can't be accessed by client-side JavaScript
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production (only with HTTPS)
-      sameSite: "strict", // Prevent CSRF attacks
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    // Redirect to frontend
-    // res.redirect(process.env.FRONTEND_URL as string);
-    res.json({ message: "Successfuly authenticated" });
-  } catch (err) {
-    console.error("Error generating token:", err);
-    res.status(500).json({ error: "Failed to generate token" });
-  }
-};
-
-// Protected route
-const profile = (req: AuthenticatedRequest, res: Response): void => {
-  res.send(
-    `<h1>Profile Page</h1><pre>${JSON.stringify(req.user, null, 2)}</pre>`
-  );
-};
-
-const facebookAuth = (req: AuthenticatedRequest, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ error: "User not authenticated" });
-    return;
-  }
-
-  const { accessToken, refreshToken } = req.user;
-
-  // Set the refresh token in an HttpOnly cookie
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true, // Can't be accessed by client-side JavaScript
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production (only with HTTPS)
-    sameSite: "strict", // Prevent CSRF attacks
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
-
-  // Redirect to frontend
-  res.redirect(process.env.FRONTEND_URL as string);
-};
 
 // Logout functionality
 const logout = asyncHandler(
@@ -258,49 +217,12 @@ const handleRefreshTokenMobile = asyncHandler(
         }
 
         // If refresh token is valid, generate a new access token
-        const accessToken: string = generateToken(user._id);
+        const accessToken: string = generateAccessToken(user._id);
         res.json({ accessToken });
       }
     );
   }
 );
-
-// Callback after Google OAuth
-const googleCallbackMobile = (
-  req: AuthenticatedRequest,
-  res: Response
-): void => {
-  try {
-    // Generate a JWT for the authenticated user
-    if (!req.user) {
-      throw new Error("User not found in request");
-    }
-
-    // Set the refresh token in an HttpOnly cookie
-    // res.json(req.user);
-      console.log(req.user)
-    // Redirect to frontend
-    res.redirect(process.env.EXPO_PUBLIC_PUBLIC_SCHEME as string);
-  } catch (err) {
-    console.error("Error generating tokSen:", err);
-    res.status(500).json({ error: "Failed to generate token" });
-  }
-};
-
-const facebookAuthMobile = (req: AuthenticatedRequest, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ error: "User not authenticated" });
-    return;
-  }
-
-  const { accessToken, refreshToken } = req.user;
-
-  // Set the refresh token in an HttpOnly cookie
-  res.json({ refreshToken: refreshToken });
-
-  // Redirect to frontend
-  res.redirect(process.env.FRONTEND_URL as string);
-};
 
 // Get all users
 const getallUser = asyncHandler(
@@ -338,12 +260,12 @@ const updateaUser = asyncHandler(async (req: Request, res: Response) => {
     return;
   }
 
-  const { id } = req.user as IUserDocument;
-  validateMongoDbId(id);
+  const { _id } = req.user;
+  validateMongoDbId(_id);
 
   try {
     const updateUser: IUserDocument | null = await User.findByIdAndUpdate(
-      id,
+      _id,
       {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
@@ -425,10 +347,6 @@ const unblockUser = asyncHandler(
 export {
   createUser,
   loginUserCtrl,
-  googleLogin,
-  googleCallback,
-  profile,
-  facebookAuth,
   getallUser,
   getaUser,
   updateaUser,
@@ -437,7 +355,6 @@ export {
   unblockUser,
   handleRefreshToken,
   logout,
-  facebookAuthMobile,
-  googleCallbackMobile,
   handleRefreshTokenMobile,
+  continueWithGoogle,
 };
