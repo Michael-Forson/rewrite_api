@@ -6,6 +6,7 @@ export interface IUserDocument extends Document {
   username: string;
   email: string;
   role: string;
+  googleId?: string;
   mobile?: string;
   password?: string;
   isBlocked: boolean;
@@ -33,6 +34,10 @@ const userSchema = new Schema<IUserDocument>(
       default: "user",
     },
 
+    googleId: {
+      type: String,
+      sparse: true,
+    },
     mobile: {
       type: String,
       sparse: true,
@@ -47,7 +52,7 @@ const userSchema = new Schema<IUserDocument>(
     },
     isSubscribed: {
       type: Boolean,
-      default:false,
+      default: false,
     },
     refreshToken: {
       type: String,
