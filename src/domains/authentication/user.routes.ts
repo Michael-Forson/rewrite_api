@@ -16,7 +16,7 @@ import {
 import { authMiddleware, isAdmin } from "../../middleware/authMiddleware";
 import jwt from "jsonwebtoken";
 const router: Router = express.Router();
-import UserModel, { IUserDocument } from "../../models/user.model";
+import UserModel, { IUserDocument } from "./user.model";
 const User = UserModel;
 interface GoogleUserInfo {
   sub: string;
@@ -50,6 +50,7 @@ router.get("/all-users", getallUser);
 
 // Token and authentication routes
 router.get("/refresh", handleRefreshToken);
+router.get("/mobile-refresh", handleRefreshTokenMobile);
 router.get("/logout", logout);
 
 // User management routes with typed parameters

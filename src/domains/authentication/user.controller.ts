@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { generateAccessToken, generateRefreshToken } from "./services/jwtToken";
-import UserModel, { IUserDocument } from "../../models/user.model";
+import UserModel, { IUserDocument } from "./user.model";
 import asyncHandler from "express-async-handler";
 import { validateMongoDbId } from "../../utils/validateMonogoDbId";
 import jwt from "jsonwebtoken";
@@ -24,7 +24,7 @@ interface GoogleCreateUserRequest extends Request {
   };
 }
 
-interface LoginRequest extends Request {
+export interface LoginRequest extends Request {
   body: {
     email: string;
     password: string;
@@ -54,17 +54,34 @@ interface JwtPayload {
 
 const createUser = asyncHandler(
   async (req: CreateUserRequest, res: Response): Promise<void> => {
-    const { email } = req.body;
-    const findUser: IUserDocument | null = await User.findOne({ email });
+    const { email, password, ...otherFields } = req.body;
+    const existingUser: IUserDocument | null = await User.findOne({ email });
+    if (existingUser) {
+      // Case: OAuth user (no password yet) - add hashed password
+      if (!existingUser.password) {
+        existingUser.password = password; // Set it—pre-save hook will hash
+        existingUser.markModified("password"); // Ensure hook detects change
 
-    if (!findUser) {
-      // Create a new User
-      const newUser: IUserDocument = await User.create(req.body);
-      res.json(newUser);
-    } else {
-      // User already exists
-      throw new Error("User already exists");
+        // Optional: Apply other fields if provided (e.g., name update)
+        Object.assign(existingUser, otherFields);
+
+        const updatedUser = await existingUser.save(); // Triggers pre-save hook
+        res.status(200).json({
+          message: "Password added to your account",
+          user: updatedUser,
+        }); // Exclude password in response
+        return;
+      }
+      // Case: Already has password - prevent duplicate registration
+      res.status(409).json({
+        message:
+          "User with this email already registered. Try login or password reset.",
+      });
+      return;
     }
+    // Create a new User
+    const newUser: IUserDocument = await User.create(req.body);
+    res.json(newUser);
   }
 );
 const continueWithGoogle = asyncHandler(
@@ -146,7 +163,7 @@ const handleRefreshToken = asyncHandler(
     // Verify the refresh token
     jwt.verify(
       refreshToken,
-      process.env.JWT_SECRET as string,
+      process.env.JWT_REFRESH_SECRET as string,
       (err: jwt.VerifyErrors | null, decoded: any) => {
         if (err || user.id !== decoded.id) {
           throw new Error("There is something wrong with the refresh token");
@@ -154,7 +171,8 @@ const handleRefreshToken = asyncHandler(
 
         // If refresh token is valid, generate a new access token
         const accessToken: string = generateAccessToken(user._id);
-        res.json({ accessToken });
+        const refreshToken: string = generateRefreshToken(user._id);
+        res.json({ accessToken, refreshToken });
       }
     );
   }

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./core/db";
 import bodyParser from "body-parser";
 import authRouter from "./domains/authentication/user.routes";
+import onboardingRouter from "./domains/onboarding.tsx/onboarding.router";
 dotenv.config();
 export function createApp() {
   const app = express();
@@ -12,5 +13,7 @@ export function createApp() {
   app.use(bodyParser.urlencoded({ extended: false }));
 
   app.use("/api/v1/user", authRouter);
+  app.use("/api/v1/onboarding", onboardingRouter);
+
   return app;
 }

@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
-import UserModel, { IUserDocument } from "../models/user.model";
+import UserModel, { IUserDocument } from "../domains/authentication/user.model";
 
 const User = UserModel;
 
@@ -25,15 +25,18 @@ export const authMiddleware = asyncHandler(
 
     try {
       // Type assertion fixes the 'id' error—decoded is now known to have 'id'
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as CustomJwtPayload;
-      
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET!
+      ) as CustomJwtPayload;
+
       // No ?. needed now, but you can add for extra runtime safety
       const user = await User.findById(decoded.id).select("-password");
       if (!user) {
         res.status(401);
         throw new Error("User not found");
       }
-      
+
       req.user = user; // Safe with declaration merging
       next();
     } catch (error) {
