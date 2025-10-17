@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, CallbackError, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
+
 // Define the interface for the User document
 export interface IUserDocument extends Document {
   username: string;
@@ -13,7 +14,10 @@ export interface IUserDocument extends Document {
   isSubscribed: boolean;
   refreshToken?: string;
   accessToken?: string;
+  recoveryStartDate: Date; // Added for milestone tracking
+  currentMilestoneStartDate?: Date; // Track current milestone period start
   isPasswordMatched(enteredPassword: string): Promise<boolean>;
+  createdAt:Date;
 }
 
 // Define schema
@@ -23,17 +27,14 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       required: true,
     },
-
     email: {
       type: String,
       required: true,
     },
-
     role: {
       type: String,
       default: "user",
     },
-
     googleId: {
       type: String,
       sparse: true,
@@ -45,7 +46,6 @@ const userSchema = new Schema<IUserDocument>(
     password: {
       type: String,
     },
-
     isBlocked: {
       type: Boolean,
       default: false,
@@ -56,6 +56,18 @@ const userSchema = new Schema<IUserDocument>(
     },
     refreshToken: {
       type: String,
+    },
+    recoveryStartDate: {
+      type: Date,
+      required: true,
+      default: () => {
+        const now = new Date();
+        now.setUTCHours(0, 0, 0, 0);
+        return now;
+      },
+    },
+    currentMilestoneStartDate: {
+      type: Date,
     },
   },
   {

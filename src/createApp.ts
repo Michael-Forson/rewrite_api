@@ -4,6 +4,9 @@ import connectDB from "./core/db";
 import bodyParser from "body-parser";
 import authRouter from "./domains/authentication/user.routes";
 import onboardingRouter from "./domains/onboarding.tsx/onboarding.router";
+import dailyCheckInRouter from "./domains/dailycheckIn/dailycheckIn.routes";
+import streakRouter from "./domains/streaks/streak.routes";
+import milestoneRouter from "./domains/milestone/milestone.routes";
 dotenv.config();
 export function createApp() {
   const app = express();
@@ -14,6 +17,8 @@ export function createApp() {
 
   app.use("/api/v1/user", authRouter);
   app.use("/api/v1/onboarding", onboardingRouter);
-
+  app.use("/api/v1/daily-check-in", dailyCheckInRouter);
+  app.use("/api/v1/streak", streakRouter);
+  app.use("/api/v1/milestone", milestoneRouter);
   return app;
 }

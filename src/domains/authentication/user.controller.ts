@@ -4,6 +4,7 @@ import UserModel, { IUserDocument } from "./user.model";
 import asyncHandler from "express-async-handler";
 import { validateMongoDbId } from "../../utils/validateMonogoDbId";
 import jwt from "jsonwebtoken";
+import { normalizeToUTCDate } from "../../utils/dateManagement";
 
 const User = UserModel;
 
@@ -79,8 +80,18 @@ const createUser = asyncHandler(
       });
       return;
     }
+    const currentDate = new Date();
+
+    const normalizedCreatedAt = normalizeToUTCDate(currentDate);
+
+    const userPayload = {
+      ...req.body,
+      createdAt: normalizedCreatedAt,
+    };
+
     // Create a new User
-    const newUser: IUserDocument = await User.create(req.body);
+    const newUser: IUserDocument = await User.create(userPayload);
+
     res.json(newUser);
   }
 );
@@ -94,7 +105,14 @@ const continueWithGoogle = asyncHandler(
     let user = await User.findOne({ email });
 
     if (!user) {
-      user = await User.create({ email, googleId });
+      const currentDate = new Date();
+      const normalizedCreatedAt = normalizeToUTCDate(currentDate);
+
+      user = await User.create({
+        email,
+        googleId,
+        createdAt: normalizeToUTCDate,
+      });
     }
 
     // Generate and update refresh token
