@@ -10,12 +10,12 @@ export const createDailyCheckIn = asyncHandler(
       return;
     }
 
-    const { _id } = req.user;
+    const { id } = req.user;
     const { ...otherFields } = req.body;
     const today = normalizeToUTCDate(new Date());
 
     const newCheckIn = await DailyCheckIn.create({
-      userId: _id,
+      userId: id,
       ...otherFields,
       checkInDate: today, // today
     });

@@ -1,13 +1,27 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { normalizeToUTCDate } from "../../utils/dateManagement";
 
 export interface ICopingUsage extends Document {
-  userId: mongoose.Types.ObjectId;
-  strategyId: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId | string;
+  strategyId: mongoose.Types.ObjectId | string;
   usedAt?: Date;
   cravingIntensityBefore: number; // 1–10 scale
   cravingIntensityAfter?: number; // optional, if tracked
-  triggerContext?: "stress" | "boredom" | "loneliness" | "anxiety" | "habit" | "peer_pressure" | "other";
-  environment?: "home" | "work" | "school" | "public" | "social_event" | "other";
+  triggerContext?:
+    | "stress"
+    | "boredom"
+    | "loneliness"
+    | "anxiety"
+    | "habit"
+    | "peer_pressure"
+    | "other";
+  environment?:
+    | "home"
+    | "work"
+    | "school"
+    | "public"
+    | "social_event"
+    | "other";
   notes?: string; // reflection or comments
   effectivenessRating?: number; // 1–5
 }
@@ -29,13 +43,13 @@ const copingUsageSchema = new Schema<ICopingUsage>(
     usedAt: {
       type: Date,
       default: Date.now,
+      set: normalizeToUTCDate,
     },
 
     cravingIntensityBefore: {
       type: Number,
       min: 1,
       max: 5,
-      required: true,
     },
 
     cravingIntensityAfter: {
@@ -47,7 +61,15 @@ const copingUsageSchema = new Schema<ICopingUsage>(
 
     triggerContext: {
       type: String,
-      enum: ["stress", "boredom", "loneliness", "anxiety", "habit", "peer_pressure", "other"],
+      enum: [
+        "stress",
+        "boredom",
+        "loneliness",
+        "anxiety",
+        "habit",
+        "peer_pressure",
+        "other",
+      ],
       default: "other",
     },
 
@@ -66,13 +88,9 @@ const copingUsageSchema = new Schema<ICopingUsage>(
       type: Number,
       min: 1,
       max: 5,
-      default: 3,
     },
   },
   { timestamps: true }
 );
 
-export const CopingUsageModel = mongoose.model<ICopingUsage>(
-  "CopingUsage",
-  copingUsageSchema
-);
+export default mongoose.model<ICopingUsage>("CopingUsage", copingUsageSchema);

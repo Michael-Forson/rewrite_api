@@ -8,7 +8,7 @@ import {
   AddictionFrequency,
   TriggerTime,
   TriggerPlace,
-} from "./service/onboarding.types";
+} from "./onboarding.types";
 
 export interface UserOnboardingDocument extends Document {
   userId: mongoose.Types.ObjectId;

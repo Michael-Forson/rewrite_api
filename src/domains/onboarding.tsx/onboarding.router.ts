@@ -3,7 +3,7 @@ import { Router } from "express";
 import { createOrUpdateOnboarding } from "./onboarding.controller";
 import { authMiddleware } from "../../middleware/authMiddleware";
 import { validateRequestWithZod } from "../../middleware/zodValidationMiddleware";
-import { onboardingValidationSchema } from "./service/onboarding.validation";
+import { onboardingValidationSchema } from "./onboarding.validation";
 
 const onboardingRouter: Router = Router();
 

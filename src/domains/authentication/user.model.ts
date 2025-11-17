@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, CallbackError, Model } from "mongoose";
 import bcrypt from "bcrypt";
-
+import { normalizeToUTCDate } from "../../utils/dateManagement";
 
 // Define the interface for the User document
 export interface IUserDocument extends Document {
@@ -17,7 +17,10 @@ export interface IUserDocument extends Document {
   recoveryStartDate: Date; // Added for milestone tracking
   currentMilestoneStartDate?: Date; // Track current milestone period start
   isPasswordMatched(enteredPassword: string): Promise<boolean>;
-  createdAt:Date;
+  paystackCustomerCode?: string;
+  trialEndAt?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Define schema
@@ -68,6 +71,18 @@ const userSchema = new Schema<IUserDocument>(
     },
     currentMilestoneStartDate: {
       type: Date,
+    },
+    paystackCustomerCode: {
+      type: String,
+    },
+    trialEndAt: {
+      type: Date,
+      default: function () {
+        const baseDate = normalizeToUTCDate(new Date());
+        const adjusted = new Date(baseDate);
+        adjusted.setDate(adjusted.getDate() + 7);
+        return adjusted;
+      },
     },
   },
   {

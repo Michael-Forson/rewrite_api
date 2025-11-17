@@ -80,13 +80,9 @@ const createUser = asyncHandler(
       });
       return;
     }
-    const currentDate = new Date();
-
-    const normalizedCreatedAt = normalizeToUTCDate(currentDate);
 
     const userPayload = {
       ...req.body,
-      createdAt: normalizedCreatedAt,
     };
 
     // Create a new User
@@ -105,13 +101,9 @@ const continueWithGoogle = asyncHandler(
     let user = await User.findOne({ email });
 
     if (!user) {
-      const currentDate = new Date();
-      const normalizedCreatedAt = normalizeToUTCDate(currentDate);
-
       user = await User.create({
         email,
         googleId,
-        createdAt: normalizeToUTCDate,
       });
     }
 

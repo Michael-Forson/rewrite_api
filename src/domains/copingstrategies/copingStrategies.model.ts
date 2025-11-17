@@ -11,7 +11,9 @@ export interface ICopingStrategy extends Document {
     | "mindfulness"
     | "emotional"
     | "social"
-    | "emergency";
+    | "emergency"
+    | "physiological"
+    | "motivational";
   defaultDurationMinutes?: number;
   difficultyLevel?: "beginner" | "intermediate" | "advanced";
   iconName?: string;
@@ -32,6 +34,12 @@ export interface ICopingStrategy extends Document {
 
 const copingStrategySchema = new Schema<ICopingStrategy>(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     strategyType: {
       type: String,
       required: true,
@@ -59,6 +67,8 @@ const copingStrategySchema = new Schema<ICopingStrategy>(
         "emotional",
         "social",
         "emergency",
+        "physiological",
+        "motivational",
       ],
       required: true,
     },

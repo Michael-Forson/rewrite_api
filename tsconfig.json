@@ -42,6 +42,6 @@
     "skipLibCheck": true,
     "typeRoots": ["./src/types", "./node_modules/@types"]
   },
-  "include": ["src/**/*.ts", "src/types/**/*"],
+  "include": ["src/**/*.ts", "src/types/**/*", "src/scripts/seed.ts"],
   "exclude": ["node_modules"]
 }
