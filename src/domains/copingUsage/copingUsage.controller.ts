@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import CopingUsage from "../copingUsage/copingUsage.model";
-import { CopingStrategyModel } from "../copingStrategies/copingStrategies.model";
+import CopingStrategy from "../copingStrategies/copingStrategies.model";
 
 /**
  * @desc Log new coping strategy usage (when user uses a strategy)
@@ -23,7 +23,7 @@ export const createCopingUsage = asyncHandler(
     } = req.body;
 
     // Ensure referenced strategy exists
-    const strategy = await CopingStrategyModel.findById(strategyId);
+    const strategy = await CopingStrategy.findById(strategyId);
     if (!strategy) {
       res.status(404);
       throw new Error("Coping strategy not found.");

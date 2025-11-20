@@ -1,7 +1,7 @@
 // seed.ts
 import mongoose from "mongoose";
 // Adjust this import path if your file structure is different
-import { CopingStrategyModel } from "../domains/copingStrategies/copingStrategies.model";
+import CopingStrategy from "../domains/copingStrategies/copingStrategies.model";
 import { masterStrategyArraySchema } from "../domains/copingStrategies/copingStrategies.validation";
 
 // --- Master Strategies Data (sortOrder removed) ---
@@ -248,7 +248,7 @@ const seedDatabase = async () => {
         // Add the 'userId: null' to indicate this is a master/default strategy
         strategyData.userId = null;
 
-        const result = await CopingStrategyModel.updateOne(
+        const result = await CopingStrategy.updateOne(
           { strategyType: strategy.strategyType }, // Filter by unique type
           { $set: strategyData }, // Set all data
           { upsert: true } // Insert if not found, update if found

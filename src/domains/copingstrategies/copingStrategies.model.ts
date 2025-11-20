@@ -120,7 +120,7 @@ const copingStrategySchema = new Schema<ICopingStrategy>(
   { timestamps: true }
 );
 
-export const CopingStrategyModel = mongoose.model<ICopingStrategy>(
+export default mongoose.model<ICopingStrategy>(
   "CopingStrategy",
   copingStrategySchema
 );
