@@ -7,7 +7,7 @@ import onboardingRouter from "./domains/onboarding.tsx/onboarding.router";
 import dailyCheckInRouter from "./domains/dailycheckIn/dailycheckIn.routes";
 import milestoneRouter from "./domains/milestone/milestone.routes";
 import analyticsRouter from "./domains/analytics/analytics.routes";
-import copingStrategiesRouter from "./domains/copingS/copingStrategies.route";
+import copingStrategiesRouter from "./domains/copingStrategies/copingStrategies.route";
 import copingUsageRouter from "./domains/copingUsage/copingUsage.routes";
 dotenv.config();
 export function createApp() {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import CopingUsage from "../copingUsage/copingUsage.model";
-import CopingStrategy from "../copingS/copingStrategies.model";
+import CopingStrategy from "../copingStrategies/copingStrategies.model";
 
 /**
  * @desc Log new coping strategy usage (when user uses a strategy)
